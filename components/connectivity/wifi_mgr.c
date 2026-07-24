@@ -3,6 +3,7 @@
 // fully powered down for air-gapped offline signing.
 #include "wifi_mgr.h"
 #include <string.h>
+#include <stdio.h>
 #include "nvs_flash.h"
 #include "nvs.h"
 #include "esp_wifi.h"

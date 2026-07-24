@@ -8,13 +8,12 @@ idf_component_register(
         "keystore.c"
         "signer.c"
         "confirm.c"
-        "trng.c"
     INCLUDE_DIRS "include"
     REQUIRES
         common
         trezor-crypto
         chains
-        hal
+        dv_hal
     PRIV_REQUIRES
         nvs_flash
         mbedtls

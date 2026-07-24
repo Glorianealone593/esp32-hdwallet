@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "esp_http_client.h"
+#include "esp_crt_bundle.h"
 #include "esp_log.h"
 #include "cJSON.h"
 
@@ -25,9 +26,8 @@ static esp_err_t on_data(esp_http_client_event_t *e){
 static int http_req(const char *url,int method,const char *body,char *out,size_t outsz){
     resp_t r={out,0,outsz}; out[0]=0;
     esp_http_client_config_t c={ .url=url, .event_handler=on_data, .user_data=&r,
-        .timeout_ms=12000, .crt_bundle_attach=NULL, .transport_type=HTTP_TRANSPORT_OVER_SSL };
-    // NOTE: for production, attach the ESP-IDF cert bundle (esp_crt_bundle_attach)
-    // so RPC TLS certs are verified. Left configurable to keep the build minimal.
+        .timeout_ms=12000, .crt_bundle_attach=esp_crt_bundle_attach };
+    // TLS server certs are verified against the built-in ESP-IDF root CA bundle.
     esp_http_client_handle_t h=esp_http_client_init(&c);
     if(!h) return -1;
     if(method==1){ esp_http_client_set_method(h,HTTP_METHOD_POST);

@@ -8,6 +8,7 @@
 #include "esp_ota_ops.h"
 #include "esp_https_ota.h"
 #include "esp_http_client.h"
+#include "esp_crt_bundle.h"
 #include "esp_app_desc.h"
 #include "cJSON.h"
 
@@ -38,7 +39,7 @@ static void (*s_progress)(int)=NULL;
 dv_err_t ota_apply(const char *image_url,void (*progress)(int)){
     s_progress=progress;
     esp_http_client_config_t http={ .url=image_url, .timeout_ms=20000,
-        .keep_alive_enable=true /*, .crt_bundle_attach=esp_crt_bundle_attach */ };
+        .keep_alive_enable=true, .crt_bundle_attach=esp_crt_bundle_attach };
     esp_https_ota_config_t cfg={ .http_config=&http };
     esp_https_ota_handle_t h=NULL;
     if(esp_https_ota_begin(&cfg,&h)!=ESP_OK){ ESP_LOGE(TAG,"ota begin failed"); return DV_ERR; }

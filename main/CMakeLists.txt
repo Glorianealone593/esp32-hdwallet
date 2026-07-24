@@ -4,9 +4,9 @@ idf_component_register(
     REQUIRES
         common
         secure_core
-        hal
+        dv_hal
         connectivity
-        console
+        dv_console
     PRIV_REQUIRES
         nvs_flash
         spiffs

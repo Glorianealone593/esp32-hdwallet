@@ -3,6 +3,7 @@
 #include "keystore.h"
 #include "confirm.h"
 #include <string.h>
+#include <stdio.h>
 #include "esp_log.h"
 #include "memzero.h"
 #include "sha3.h"

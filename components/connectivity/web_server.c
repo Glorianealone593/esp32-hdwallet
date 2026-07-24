@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include "esp_http_server.h"
 #include "esp_log.h"
-#include "esp_vfs.h"
 #include "cJSON.h"
 
 static const char *TAG="web";

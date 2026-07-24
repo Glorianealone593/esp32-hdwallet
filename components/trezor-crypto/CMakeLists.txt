@@ -51,6 +51,8 @@ set(TC_SRCS
     "${LIB}/segwit_addr.c"
     "${LIB}/address.c"
     "${LIB}/memzero.c"
+    "${LIB}/consteq.c"
+    "${LIB}/fault_handler_noop.c"
     # ed25519-donna (ed25519.c depends on all of these)
     "${LIB}/ed25519-donna/curve25519-donna-32bit.c"
     "${LIB}/ed25519-donna/curve25519-donna-helpers.c"
@@ -64,15 +66,17 @@ set(TC_SRCS
     "${LIB}/ed25519-donna/ed25519-keccak.c"
 )
 
+# The hardware TRNG binding (random32/random_buffer) lives here, in the same
+# archive that references it, so there is no cross-component link cycle.
 idf_component_register(
-    SRCS ${TC_SRCS}
+    SRCS ${TC_SRCS} "${CMAKE_CURRENT_LIST_DIR}/trng.c"
     INCLUDE_DIRS "${LIB}" "${LIB}/ed25519-donna"
-    REQUIRES ""
+    PRIV_REQUIRES esp_hw_support
 )
 
 # trezor-crypto build-time switches. ed25519.c pulls randomness from rand.h
-# (our secure_core/trng.c provides random32/random_buffer), so no custom-random
-# hook is defined here.
+# (trng.c provides random32/random_buffer via the ESP32 hardware RNG), so no
+# custom-random hook is defined here.
 target_compile_definitions(${COMPONENT_LIB} PUBLIC
     USE_BIP39_CACHE=0
     USE_BIP32_CACHE=0

@@ -128,6 +128,13 @@ static void gather_entropy(uint8_t *out, size_t len) {
 
 // ---- public API ----------------------------------------------------------
 dv_err_t keystore_init(void) {
+    // The secure vault lives in its own NVS partition; initialize it (separate
+    // from the default `nvs` partition inited in app_main).
+    esp_err_t e = nvs_flash_init_partition(VAULT_PART);
+    if (e == ESP_ERR_NVS_NO_FREE_PAGES || e == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        nvs_flash_erase_partition(VAULT_PART);
+        nvs_flash_init_partition(VAULT_PART);
+    }
     vault_blob_t b;
     if (blob_load(&b) == DV_OK) {
         s_provisioned = true;

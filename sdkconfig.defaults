@@ -17,7 +17,11 @@ CONFIG_ESPTOOLPY_FLASHSIZE="8MB"
 # CONFIG_SECURE_BOOT_V2_ENABLED=y
 
 # --- NVS encryption for the secure vault partition ---
-CONFIG_NVS_ENCRYPTION=y
+# OFF by default so the firmware builds and runs on every target without eFuse
+# key provisioning. The seed is ALWAYS PIN-wrapped (PBKDF2 + AES-GCM) in the
+# keystore regardless. Production builds enable flash encryption, which turns on
+# NVS encryption for the `nvs_secure` partition — see docs/BUILD.md.
+# CONFIG_NVS_ENCRYPTION is not set
 
 # --- HTTP server ---
 CONFIG_HTTPD_MAX_REQ_HDR_LEN=1024

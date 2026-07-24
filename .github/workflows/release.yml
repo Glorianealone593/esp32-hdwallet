@@ -56,11 +56,16 @@ jobs:
           cp build/bootloader/bootloader.bin           "$OUT/bootloader.bin"
           cp build/partition_table/partition-table.bin "$OUT/partition-table.bin"
           cp build/dibavault.bin                        "$OUT/dibavault.bin"
+          cp build/storage.bin                          "$OUT/storage.bin"
+          cp build/ota_data_initial.bin                 "$OUT/ota_data_initial.bin"
 
-          # Bootloader offset differs by chip: 0x1000 on the classic ESP32, 0x0 on S3/C3.
+          # Offsets differ by chip. Classic ESP32 uses an 8MB layout with the
+          # bootloader at 0x1000; S3 also 8MB but bootloader at 0x0; C3 uses the
+          # 4MB layout (partitions_4mb.csv) so ota_data/storage shift down.
           case "$TARGET" in
-            esp32)   BOOT_OFFSET="0x1000" ;;
-            *)       BOOT_OFFSET="0x0"    ;;
+            esp32)   BOOT="0x1000"; OTADATA="0xf000"; STORAGE="0x3c0000" ;;
+            esp32s3) BOOT="0x0";    OTADATA="0xf000"; STORAGE="0x3c0000" ;;
+            esp32c3) BOOT="0x0";    OTADATA="0xe000"; STORAGE="0x3a0000" ;;
           esac
 
           cat > "$OUT/FLASHING.txt" <<EOF
@@ -70,12 +75,17 @@ jobs:
           Requirements:
             pip install esptool
 
-          Flash (replace /dev/ttyUSB0 with your serial port):
+          Full flash (replace /dev/ttyUSB0 with your serial port):
 
             esptool.py -p /dev/ttyUSB0 -b 460800 --chip ${TARGET} write_flash \\
-              ${BOOT_OFFSET}   bootloader.bin \\
-              0x8000  partition-table.bin \\
-              0x20000 dibavault.bin
+              ${BOOT}   bootloader.bin \\
+              0x8000    partition-table.bin \\
+              ${OTADATA}   ota_data_initial.bin \\
+              0x20000   dibavault.bin \\
+              ${STORAGE} storage.bin
+
+          (storage.bin holds the web UI; the wallet also works over the serial
+          console without it.)
 
           To erase a device first (WARNING: destroys any stored seed — back up
           your recovery words first):
@@ -126,4 +136,4 @@ jobs:
             > DibaVault is experimental and **not independently audited**, and the
             > ESP32 has **no dedicated secure element**. Test on testnets first and
             > read the security notes before storing real funds:
-            > https://github.com/dibachain/esp32-hdwallet/blob/main/docs/SECURITY.md
+            > https://github.com/${{ github.repository }}/blob/main/docs/SECURITY.md

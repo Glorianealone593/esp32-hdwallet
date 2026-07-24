@@ -9,7 +9,7 @@ idf_component_register(
         "ota.c"
         "web_server.c"
     INCLUDE_DIRS "include"
-    REQUIRES common secure_core chains hal
+    REQUIRES common secure_core chains dv_hal
     PRIV_REQUIRES
         esp_http_server
         esp_http_client
@@ -22,4 +22,6 @@ idf_component_register(
         app_update
         spiffs
         esp_app_format
+        esp-tls
+        mbedtls
 )
