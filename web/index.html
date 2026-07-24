@@ -1,0 +1,53 @@
+<!--
+  DibaVault - ESP32 hardware wallet web UI
+  (c) dibachain. Served embedded/gzipped from ESP32 flash.
+  Self-contained: no external CDN / framework / font / network resource.
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0B0F10">
+<title>DibaVault</title>
+<link rel="stylesheet" href="style.css">
+
+<!-- Top bar: logo, mode indicator, language + lock -->
+<header id="topbar" hidden>
+  <div class="brand">
+    <span class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 2 4 5v6c0 5 3.4 8.4 8 11 4.6-2.6 8-6 8-11V5l-8-3z"/>
+        <path d="M9 12l2 2 4-4" stroke-width="1.8"/>
+      </svg>
+    </span>
+    <span class="brand-name">Diba<b>Vault</b></span>
+    <span class="brand-sub">by dibachain</span>
+  </div>
+  <div class="topbar-right">
+    <span id="modeBadge" class="badge badge-mode" title="Connection mode">--</span>
+    <button id="langToggle" class="btn btn-ghost" type="button" aria-label="Language">FA</button>
+    <button id="lockBtn" class="btn btn-ghost" type="button" hidden>
+      <span data-i18n="lock">Lock</span>
+    </button>
+  </div>
+</header>
+
+<!-- Router mounts one active view here -->
+<main id="app" aria-live="polite">
+  <div class="loading-splash">
+    <div class="spinner"></div>
+    <p data-i18n="connecting">Connecting to device…</p>
+  </div>
+</main>
+
+<!-- Global toast host -->
+<div id="toasts" class="toast-host" aria-live="assertive"></div>
+
+<!-- Global modal host (device confirmation, etc.) -->
+<div id="modalHost" class="modal-host" hidden></div>
+
+<footer id="footer" hidden>
+  <span>DibaVault &middot; dibachain</span>
+  <span class="fw" id="fwline"></span>
+</footer>
+
+<script src="app.js" defer></script>

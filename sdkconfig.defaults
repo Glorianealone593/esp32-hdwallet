@@ -1,0 +1,36 @@
+# DibaVault — common sdkconfig defaults (dibachain)
+# Chip-specific overrides live in sdkconfig.defaults.<target>.
+
+# --- Partition table ---
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# --- Flash (assume 8MB; override per board) ---
+CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="8MB"
+
+# --- Security: flash encryption + secure boot ---
+# NOTE: These are ENABLED for production release builds only.
+# They are irreversible once burned. Keep OFF for dev flashing.
+# CONFIG_SECURE_FLASH_ENC_ENABLED=y
+# CONFIG_SECURE_BOOT=y
+# CONFIG_SECURE_BOOT_V2_ENABLED=y
+
+# --- NVS encryption for the secure vault partition ---
+CONFIG_NVS_ENCRYPTION=y
+
+# --- HTTP server ---
+CONFIG_HTTPD_MAX_REQ_HDR_LEN=1024
+CONFIG_HTTPD_MAX_URI_LEN=512
+
+# --- mbedTLS: enable the curves/hashes we need ---
+CONFIG_MBEDTLS_HARDWARE_AES=y
+
+# --- FreeRTOS / task watchdog ---
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=10
+
+# --- Reduce log verbosity in release (no secrets ever logged) ---
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+
+# --- Brownout: reset cleanly on power dips (protects flash writes) ---
+CONFIG_ESP_BROWNOUT_DET=y

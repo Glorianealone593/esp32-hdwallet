@@ -1,0 +1,27 @@
+DibaVault — ESP32 HD Wallet Firmware
+Copyright (c) dibachain
+
+Licensed under the GNU General Public License v3.0 (GPL-3.0).
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
+
+The full text of GPL-3.0 is available at: https://www.gnu.org/licenses/gpl-3.0.txt
+
+---------------------------------------------------------------------------
+ADDITIONAL SECURITY NOTICE
+
+DibaVault is provided WITHOUT WARRANTY OF ANY KIND. Cryptocurrency private
+keys secured by this firmware are the sole responsibility of the operator.
+dibachain is not liable for any loss of funds. This firmware has NOT been
+independently audited. Do not use it to secure significant value until an
+independent third-party security audit has been completed. See docs/SECURITY.md.

@@ -1,0 +1,32 @@
+# DibaVault — Continuous Integration (dibachain)
+#
+# On every push and pull request, build for the recommended target (esp32s3) in
+# the official ESP-IDF container to catch breakage early.
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  build:
+    name: Build (esp32s3)
+    runs-on: ubuntu-latest
+    container: espressif/idf:release-v5.3
+
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: true   # non-recursive: we only need crypto/, not trezor-firmware nested submodules
+
+      - name: Mark workspace safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Build firmware
+        shell: bash
+        run: |
+          . "$IDF_PATH/export.sh"
+          idf.py set-target esp32s3
+          idf.py build

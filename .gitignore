@@ -1,0 +1,25 @@
+# ESP-IDF build artifacts
+build/
+sdkconfig
+sdkconfig.old
+*.bin
+*.elf
+*.map
+
+# Secrets — NEVER commit signing keys
+secure_boot_signing_key.pem
+ota_signing_key.pem
+*.key
+keys/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Python
+__pycache__/
+*.pyc
+managed_components/
+dependencies.lock

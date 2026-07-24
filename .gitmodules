@@ -1,0 +1,3 @@
+[submodule "components/trezor-crypto/lib"]
+	path = components/trezor-crypto/lib
+	url = https://github.com/trezor/trezor-firmware
