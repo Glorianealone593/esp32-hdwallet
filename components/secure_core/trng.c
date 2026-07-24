@@ -21,8 +21,3 @@ uint32_t random32(void) {
 void random_buffer(uint8_t *buf, size_t len) {
     esp_fill_random(buf, len);
 }
-
-// ed25519-donna (built with ED25519_CUSTOMRANDOM) asks for randomness here.
-void ed25519_randombytes_unsafe(void *out, size_t count) {
-    esp_fill_random(out, count);
-}

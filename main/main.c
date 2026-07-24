@@ -23,6 +23,7 @@
 #include "display.h"
 #include "button.h"
 #include "net_config.h"
+#include "tokens_config.h"
 #include "wifi_mgr.h"
 #include "web_server.h"
 #include "ota.h"
@@ -62,6 +63,7 @@ void app_main(void){
     // 5) Connectivity: AP hotspot up so the local UI is reachable. STA is opt-in
     //    from Settings. Keys are unreachable from either — see vault_ipc.h.
     net_config_init();
+    tokens_config_init();
     wifi_mgr_init();
     wifi_mgr_set_mode(DV_WIFI_AP);
     web_server_start();

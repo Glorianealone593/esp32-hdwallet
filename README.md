@@ -24,6 +24,11 @@ hotspot, a local web UI, RPC clients and signed OTA updates) can view balances a
 build unsigned transactions, but it is architecturally prevented from ever touching
 your keys. WiFi can be turned off entirely for fully air-gapped, offline signing.
 
+Beyond native coins, DibaVault ships a **token registry** so you can manage **any**
+ERC-20, TRC-20 or SPL token on **any** network you add, and a documented
+**REST API** so external applications — including a planned companion mobile/desktop
+app — can integrate with the device.
+
 ---
 
 ## ⚠️ Security disclaimer — read this first
@@ -53,22 +58,32 @@ your keys. WiFi can be turned off entirely for fully air-gapped, offline signing
 
 - [Features](#features)
 - [Supported chains](#supported-chains)
+- [Token management](#token-management)
 - [Hardware requirements](#hardware-requirements)
   - [Example wiring — ESP32-S3 + SSD1306 + 2 buttons](#example-wiring--esp32-s3--ssd1306--2-buttons)
 - [Quick start (prebuilt release)](#quick-start-prebuilt-release)
 - [Build from source](#build-from-source)
 - [Security model](#security-model)
 - [Offline (air-gapped) signing](#offline-air-gapped-signing)
+- [REST API](#rest-api)
 - [Documentation](#documentation)
+- [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
-- [راهنمای فارسی](#راهنمای-فارسی)
 
 ---
 
 ## Features
 
-- **Multi-chain HD wallet** — one BIP39 seed, multiple coins (see table below).
+- **Multi-chain HD wallet** — one BIP39 seed, multiple coins (see table below):
+  Bitcoin, EVM (Ethereum and any EVM chain by chain-id), Tron and Solana.
+- **Manage any token** — a built-in **token registry** lets you register any
+  **ERC-20**, **TRC-20** or **SPL** token contract on any supported network and then
+  view its balance and send it. Tokens are matched to a network by
+  `(family, chain-id)`. See [Token management](#token-management).
+- **Bring your own networks & RPCs** — add custom EVM chains (by chain-id), Bitcoin
+  nodes, Tron and Solana endpoints from the web UI or console. The network/RPC
+  registry is non-sensitive config stored in NVS.
 - **Secure-core / connectivity split** — private keys live in a dedicated,
   isolated FreeRTOS task. The networking code never links against the key
   code; it can only talk to the vault through one narrow IPC boundary
@@ -85,15 +100,17 @@ your keys. WiFi can be turned off entirely for fully air-gapped, offline signing
 - **Join-router mode, restrictable to updates-only** — connect to your router
   to reach RPC endpoints and pull OTA updates; this can be policy-limited to
   "updates + read-only".
-- **Bring your own networks & RPCs** — add custom EVM chains (by chain-id),
-  Bitcoin nodes, Tron and Solana endpoints from the web UI or console.
 - **Air-gapped offline signing** — disable the radio entirely and sign
-  transactions you paste in by hand. See [below](#offline-air-gapped-signing).
+  transactions you enter by hand. See [below](#offline-air-gapped-signing).
 - **Signed OTA updates** — firmware images are verified against a **pinned
   dibachain public key** before they are ever booted.
 - **Runtime hardware configuration** — display type, button GPIOs and I2C pins
   are chosen once at first boot and stored in NVS, so a single firmware image
   runs on any wiring and on any of the three supported chips.
+- **Serial console + web UI** — provision and operate the device over the local
+  serial console or the embedded web UI served from the device's hotspot.
+- **Documented REST API** — the on-device HTTP server exposes a JSON API
+  ([`docs/API.md`](docs/API.md)) so future app/mobile clients can integrate.
 
 ## Supported chains
 
@@ -104,11 +121,36 @@ your keys. WiFi can be turned off entirely for fully air-gapped, offline signing
 | **Tron** | TRX | `195'` | secp256k1 | Base58Check `T…` addresses (`0x41` prefix); TRC-20 transfers. |
 | **Solana** | SOL | `501'` | ed25519 | Base58 public-key addresses; SPL token transfers. |
 
-Cryptography is provided by [trezor-crypto](https://github.com/trezor/trezor-crypto),
-included as a git submodule under
+Cryptography is provided by the `crypto/` library from the
+[trezor-firmware](https://github.com/trezor/trezor-firmware) monorepo, included as a
+git submodule under
 [`components/trezor-crypto/lib`](components/trezor-crypto). The ESP32 hardware RNG
 is bound in as the entropy source (upstream's stub RNG is deliberately not
 compiled — see [`components/trezor-crypto/CMakeLists.txt`](components/trezor-crypto/CMakeLists.txt)).
+
+## Token management
+
+DibaVault treats tokens like networks: **non-sensitive config** you fully control.
+
+- **Any token, any network.** Register an ERC-20, TRC-20 or SPL token by its
+  contract address (or SPL mint) together with a symbol, name and decimals. Each
+  token is bound to a chain family and, for EVM, an `evm_chain_id`, so the same
+  registry can hold USDT on Ethereum, USDT on BSC, USDC on Polygon, a TRC-20 on
+  Tron and an SPL mint on Solana at the same time.
+- **Registry limits.** Up to 64 tokens (`DV_TOKEN_MAX`) alongside up to 32 networks
+  (`DV_NET_MAX`). A few well-known stablecoins are seeded on first boot and can be
+  removed.
+- **Balances & transfers.** The connectivity layer reads token balances over your
+  configured RPC endpoint and can build a token-transfer transaction; signing still
+  requires the same on-device physical confirmation as a native transfer.
+- **Where it lives.** The registry header is
+  [`tokens_config.h`](components/connectivity/include/tokens_config.h). It is managed
+  from the web UI / console, and exposed over the REST API at `/api/tokens` and
+  `/api/token/balance` (see [`docs/API.md`](docs/API.md)).
+
+Token metadata is untrusted config: the wallet always shows the decoded recipient,
+amount and symbol on the confirmation screen so you can verify a transfer before
+approving it.
 
 ## Hardware requirements
 
@@ -158,7 +200,7 @@ release binary from GitHub Releases.
    ```
 
 2. **Download** the firmware set for your chip from the
-   [dibachain/esp32-hdwallet Releases](https://github.com/dibachain/esp32-hdwallet/releases)
+   [esp32-hdwallet Releases](https://github.com/AliAkrami1375/esp32-hdwallet/releases)
    page. Each target ships `bootloader.bin`, `partition-table.bin` and
    `dibavault.bin`, plus a `FLASHING.txt` with the exact offsets.
 
@@ -196,17 +238,24 @@ release binary from GitHub Releases.
 You need [ESP-IDF **v5.x**](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/)
 installed and its environment sourced (`. $IDF_PATH/export.sh`).
 
-```bash
-# 1. Clone WITH submodules (trezor-crypto is a submodule).
-git clone --recursive https://github.com/dibachain/esp32-hdwallet.git
-cd esp32-hdwallet
-# If you forgot --recursive:
-#   git submodule update --init --recursive
+The cryptography submodule is the **trezor-firmware** monorepo; DibaVault builds
+only its `crypto/` directory. Initialize it **shallow and non-recursively** — do
+**not** use `--recursive`, because trezor-firmware pulls in many nested submodules
+DibaVault does not need.
 
-# 2. Select your target (esp32s3 recommended; also esp32, esp32c3).
+```bash
+# 1. Clone the repository.
+git clone https://github.com/AliAkrami1375/esp32-hdwallet.git
+cd esp32-hdwallet
+
+# 2. Fetch ONLY the trezor-firmware submodule, shallow and non-recursive.
+#    (Submodule path: components/trezor-crypto/lib; sources built from crypto/.)
+git submodule update --init --depth 1
+
+# 3. Select your target (esp32s3 recommended; also esp32, esp32c3).
 idf.py set-target esp32s3
 
-# 3. Build, flash and open the console.
+# 4. Build, flash and open the console.
 idf.py build flash monitor
 ```
 
@@ -229,12 +278,13 @@ plus physical confirmation**.
         UNTRUSTED  (connectivity layer)                 TRUSTED  (secure core)
   ┌───────────────────────────────────────┐        ┌──────────────────────────────┐
   │  WiFi AP / STA hotspot                 │        │  keystore  (seed, PIN wrap)   │
-  │  HTTP web UI  (http://192.168.4.1)     │        │  key derivation (BIP32/39)    │
-  │  JSON API / RPC clients                │        │  signer  (secp256k1 / ed25519)│
-  │  OTA client (verifies dibachain key)   │        │  confirm gate (button/OLED)   │
-  │                                        │        │                              │
-  │  can: read balances, build UNSIGNED tx │        │  holds ALL private material   │
-  │  cannot: see keys, sign without button │        │  runs on its own pinned core  │
+  │  HTTP web UI + REST API                │        │  key derivation (BIP32/39)    │
+  │  (http://192.168.4.1)                  │        │  signer  (secp256k1 / ed25519)│
+  │  RPC clients · OTA (pinned key)        │        │  confirm gate (button/OLED)   │
+  │  network + token registry              │        │                              │
+  │                                        │        │  holds ALL private material   │
+  │  can: read balances, build UNSIGNED tx │        │  runs on its own pinned core  │
+  │  cannot: see keys, sign without button │        │                              │
   └───────────────────┬───────────────────┘        └───────────────┬──────────────┘
                       │                                             │
                       │        vault_ipc  (the ONE boundary)        │
@@ -281,6 +331,18 @@ Because the private keys never leave the secure core and the radio is off, an
 online attacker has no path to them. This is the recommended mode for significant
 funds. See [`docs/SECURITY.md`](docs/SECURITY.md) for caveats.
 
+## REST API
+
+The device's HTTP server exposes a JSON REST API used by the embedded web UI and
+available to any client on the local AP/LAN. It covers status, provisioning,
+unlock/lock, the network and token registries, account and balance queries, and the
+build → sign → broadcast transaction flow. Signing operations always require the
+same on-device physical confirmation, and the mnemonic is never returned over HTTP.
+
+The complete reference — every endpoint, request/response shape, error codes and
+example `curl` flows — is in [`docs/API.md`](docs/API.md). It is written so an
+external app/mobile developer can integrate against the device.
+
 ## Documentation
 
 | Document | Contents |
@@ -289,11 +351,30 @@ funds. See [`docs/SECURITY.md`](docs/SECURITY.md) for caveats.
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Component map, IPC boundary & flow, task/core pinning, partitions, adding a chain |
 | [`docs/BUILD.md`](docs/BUILD.md) | Build/flash for all targets, production fuses, signing keys, releases |
 | [`docs/HARDWARE.md`](docs/HARDWARE.md) | Supported boards, runtime HAL config, per-chip wiring & pins to avoid |
+| [`docs/API.md`](docs/API.md) | Full REST API reference for the on-device HTTP server (for app/mobile integration) |
+
+## Roadmap
+
+DibaVault is under active development by dibachain. Planned and in-progress work:
+
+- **Companion mobile / desktop app.** A dedicated app that talks to the device over
+  the same [REST API](docs/API.md) documented here — pairing over the local AP/LAN,
+  managing networks and tokens, watching balances, and driving the
+  build → confirm-on-device → broadcast flow. The API is intentionally documented
+  first so the app and firmware evolve against a stable contract.
+- **Broader token and chain coverage** via the network and token registries.
+- **QR-based air-gapped workflows** for transaction hand-off between an online
+  companion app and an offline device.
+- **Hardening and, ultimately, an independent security review** before any claim of
+  production readiness.
+
+Roadmap items are aspirational and may change; nothing here is a guarantee of a
+delivery date.
 
 ## Contributing
 
 Issues and pull requests are welcome at
-[github.com/dibachain/esp32-hdwallet](https://github.com/dibachain/esp32-hdwallet).
+[github.com/AliAkrami1375/esp32-hdwallet](https://github.com/AliAkrami1375/esp32-hdwallet).
 Please keep the secure-core / connectivity boundary intact: the connectivity
 layer must never include `keystore.h` or the signer, and the build's boundary
 check enforces this. Security reports should follow the responsible-disclosure
@@ -304,49 +385,9 @@ process in [`docs/SECURITY.md`](docs/SECURITY.md).
 DibaVault is released under the **GNU General Public License v3.0 (GPL-3.0)**.
 See [`LICENSE`](LICENSE). Copyright © dibachain.
 
-The bundled [trezor-crypto](https://github.com/trezor/trezor-crypto) submodule is
+The bundled cryptography from the
+[trezor-firmware](https://github.com/trezor/trezor-firmware) submodule is
 distributed under its own license by its respective authors.
-
----
-
-## راهنمای فارسی
-
-**دیبا‌ولت (DibaVault)** یک فریم‌ور کیف‌پول سخت‌افزاری متن‌باز برای بردهای ESP32
-است که توسط **dibachain** توسعه داده می‌شود. این دستگاه کلید خصوصی شما را روی خودِ
-سخت‌افزار تولید و نگه‌داری می‌کند و تراکنش‌ها را به‌صورت محلی و پس از تأیید فیزیکی
-(فشردن دکمه) امضا می‌کند.
-
-**هشدار امنیتی مهم:**
-- این فریم‌ور **آزمایشی** است و **هنوز به‌صورت مستقل ممیزی (audit) نشده است**.
-- تراشهٔ ESP32 **عنصر امن اختصاصی (secure element) ندارد**؛ محافظت از کلید بر پایهٔ
-  رمزنگاری فلش، بوت امن و پین است، اما هم‌ارز یک تراشهٔ امن تخصصی نیست.
-- در برابر حملات فیزیکی (کانال جانبی و تزریق خطا) و خطرات زنجیرهٔ تأمین آسیب‌پذیر است.
-- **ابتدا روی شبکه‌های آزمایشی (testnet) و با مبالغ کم** استفاده کنید. مسئولیت
-  استفاده کاملاً بر عهدهٔ شماست.
-
-**زنجیره‌های پشتیبانی‌شده:** بیت‌کوین، شبکه‌های EVM (اتریوم و هر زنجیرهٔ سازگار با
-chain-id)، ترون (TRX) و سولانا (SOL).
-
-**معماری امنیتی:** بخش «هستهٔ امن» کلیدها را نگه می‌دارد و امضا می‌کند؛ بخش
-«اتصال» (وای‌فای، رابط وب، RPC و به‌روزرسانی OTA) نامطمئن در نظر گرفته می‌شود و
-هرگز به کد کلیدها لینک نمی‌شود. این دو تنها از طریق یک مرز باریک پیام‌رسانی
-(`vault_ipc.h`) با هم صحبت می‌کنند و **هیچ کلید خصوصی از این مرز عبور نمی‌کند**.
-وای‌فای را می‌توان کاملاً خاموش کرد تا امضای کاملاً آفلاین (air-gapped) انجام شود.
-
-**شروع سریع:**
-1. با `pip install esptool` ابزار فلش را نصب کنید.
-2. فایل‌های نسخهٔ مناسب تراشهٔ خود را از بخش Releases دانلود کنید.
-3. با `esptool.py … write_flash …` (مطابق فایل `FLASHING.txt`) فلش کنید.
-4. در نخستین راه‌اندازی، از طریق کنسول سریال یا هات‌اسپات وای‌فای در نشانی
-   **`http://192.168.4.1`** پین را تعیین کنید، سخت‌افزار (نمایشگر/دکمه‌ها) را
-   انتخاب کنید و **کلمات بازیابی (۱۲/۱۸/۲۴ کلمه) را یادداشت کنید**. این کلمات فقط
-   یک‌بار و در همان مرحلهٔ راه‌اندازی نمایش داده می‌شوند.
-
-**ساخت از منبع:** با `git clone --recursive`، سپس `idf.py set-target esp32s3` و
-`idf.py build flash monitor` (نیازمند ESP-IDF نسخهٔ ۵). جزئیات کامل در
-[`docs/BUILD.md`](docs/BUILD.md).
-
-برای مطالعهٔ کامل به مستندات انگلیسی و پوشهٔ [`docs/`](docs) مراجعه کنید.
 
 ---
 

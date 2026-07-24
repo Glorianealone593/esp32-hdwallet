@@ -229,136 +229,84 @@ var QR = (function () {
 })();
 
 /* ===========================================================================
- * 2) i18n  (EN / FA)
+ * 2) UI strings  (English only)
  * ==========================================================================*/
 var I18N = {
-  en:{
-    connecting:"Connecting to device…", lock:"Lock", locked:"Locked",
-    retry:"Retry", conn_fail:"Cannot reach the device", conn_fail_hint:"Make sure you are connected to the DibaVault Wi-Fi.",
-    // wizard
-    setup_title:"Device setup", setup_sub:"Let's provision your DibaVault.",
-    step_hw:"Hardware", step_wallet:"Wallet", step_wifi:"Wi-Fi & finish",
-    hw_title:"Hardware configuration", hw_sub:"Configure the display and buttons for on-device confirmation.",
-    display_type:"Display type", none:"None", confirm_mode:"Confirmation mode",
-    cm_none:"None (no physical confirm)", cm_1:"1 button", cm_2:"2 buttons", cm_3:"3 buttons",
-    i2c_sda:"I²C SDA GPIO", i2c_scl:"I²C SCL GPIO", i2c_addr:"I²C address (hex)",
-    btn_ok:"OK button GPIO", btn_cancel:"Cancel button GPIO", btn_up:"Up button GPIO", btn_down:"Down button GPIO",
-    active_low:"Buttons are active-low", hw_warn:"You selected no display and no buttons. Transactions cannot be verified on a trusted screen, which significantly weakens security. Use only for watch-only / testing.",
-    save_continue:"Save & continue",
-    // wallet
-    wallet_title:"Create or import wallet", create_new:"Create new", import_existing:"Import existing",
-    word_count:"Recovery phrase length", w12:"12 words", w18:"18 words", w24:"24 words",
-    pin:"PIN", pin_hint:"6–12 digits", passphrase:"Passphrase (optional)", passphrase_hint:"Extra 25th-word secret. Leave empty if unsure.",
-    generate:"Generate wallet", import_phrase:"Recovery phrase", import_hint:"Enter your 12/18/24 words separated by spaces.",
-    import_btn:"Import wallet",
-    mnemonic_title:"Your recovery phrase", mnemonic_warn_1:"Write these words down offline, in order.",
-    mnemonic_warn_2:"They are shown ONCE. dibachain can never recover them. Anyone with these words controls your funds.",
-    written_down:"I have written them down and stored them securely.", continue:"Continue",
-    // wifi
-    wifi_title:"Wi-Fi", wifi_sub:"Optional. You can run fully offline (air-gapped) too.",
-    ap_ssid:"Access-point name (AP SSID)", ap_pass:"Access-point password",
-    sta_ssid:"Home Wi-Fi name (STA SSID)", sta_pass:"Home Wi-Fi password",
-    sta_updates_only:"Only use home Wi-Fi for updates (recommended)", finish:"Finish setup",
-    // unlock
-    unlock_title:"Enter PIN", unlock_sub:"Unlock your DibaVault to continue.",
-    unlock_btn:"Unlock", attempts_left:"attempts left", wrong_pin:"Wrong PIN", clear:"Clear",
-    // dashboard tabs
-    tab_networks:"Networks", tab_accounts:"Accounts", tab_send:"Send", tab_offline:"Offline signing", tab_settings:"Settings",
-    // networks
-    networks_title:"Networks & RPCs", networks_sub:"Add any chain and your own RPC endpoint.",
-    add_network:"Add network", family:"Family", name:"Name", chain_id:"EVM chain ID",
-    rpc_url:"RPC URL", symbol:"Symbol", decimals:"Decimals", explorer:"Explorer URL (optional)",
-    add:"Add", delete:"Delete", no_networks:"No networks yet. Add your first chain above.",
-    // accounts
-    accounts_title:"Accounts & balances", select_network:"Select network",
-    account:"Account", balance:"Balance", refresh:"Refresh", copy:"Copy", copied:"Copied",
-    watch_only:"Read-only — safe to use in watch-only / hotspot mode.", scan_qr:"Scan to receive",
-    // send
-    send_title:"Send transaction", to_addr:"Recipient address", amount:"Amount",
-    token_contract:"Token contract (optional)", token_decimals:"Token decimals",
-    build_tx:"Review transaction", review_title:"Review transaction", sign_device:"Sign on device",
-    fee:"Network fee", nonce:"Nonce", gas:"Gas", broadcast:"Broadcast", signed_tx:"Signed transaction",
-    txid:"Transaction ID", edit:"Edit", confirm_device:"Confirm on your device",
-    confirm_device_sub:"Check the details on the DibaVault screen and approve.",
-    // offline
-    offline_title:"Air-gapped offline signing", offline_toggle:"Air-gapped mode",
-    offline_on:"Radio is OFF. The device is not connected to any network.",
-    offline_off:"Turn on to disable all radios and sign fully offline.",
-    offline_sub:"Fill the transaction below (or paste unsigned JSON). The device signs it without ever touching the network. Carry the signed result to an online device via QR.",
-    unsigned_json:"Unsigned transaction JSON (optional)", sign_offline:"Sign offline",
-    signed_result:"Signed result", carry_qr:"Scan on your online device to broadcast",
-    paste_signed:"Paste a signed result to decode/verify",
-    // settings
-    settings_title:"Settings", wifi_settings:"Wi-Fi", save:"Save",
-    ota_title:"Firmware update", ota_check:"Check for updates", ota_current:"Current version",
-    ota_latest:"Latest version", ota_apply:"Install update", ota_uptodate:"You are on the latest version.",
-    ota_available:"Update available", hw_info:"Hardware info", lock_now:"Lock device now",
-    updating:"Updating firmware… do not power off.",
-    // generic
-    required:"required", loading:"Loading…", saved:"Saved", error:"Error", close:"Close", warning:"Warning"
-  },
-  fa:{
-    connecting:"در حال اتصال به دستگاه…", lock:"قفل", locked:"قفل شده",
-    retry:"تلاش دوباره", conn_fail:"دستگاه در دسترس نیست", conn_fail_hint:"مطمئن شوید به وای‌فای DibaVault متصل هستید.",
-    setup_title:"راه‌اندازی دستگاه", setup_sub:"بیایید DibaVault شما را آماده کنیم.",
-    step_hw:"سخت‌افزار", step_wallet:"کیف پول", step_wifi:"وای‌فای و پایان",
-    hw_title:"پیکربندی سخت‌افزار", hw_sub:"نمایشگر و دکمه‌ها را برای تأیید روی دستگاه تنظیم کنید.",
-    display_type:"نوع نمایشگر", none:"هیچ‌کدام", confirm_mode:"حالت تأیید",
-    cm_none:"بدون تأیید فیزیکی", cm_1:"۱ دکمه", cm_2:"۲ دکمه", cm_3:"۳ دکمه",
-    i2c_sda:"پایه SDA (I²C)", i2c_scl:"پایه SCL (I²C)", i2c_addr:"آدرس I²C (هگز)",
-    btn_ok:"پایه دکمه تأیید", btn_cancel:"پایه دکمه لغو", btn_up:"پایه دکمه بالا", btn_down:"پایه دکمه پایین",
-    active_low:"دکمه‌ها active-low هستند", hw_warn:"شما نمایشگر و دکمه انتخاب نکردید. تراکنش‌ها روی صفحهٔ مطمئن قابل بررسی نیستند و امنیت به‌شدت کاهش می‌یابد. فقط برای حالت فقط-مشاهده / آزمایش استفاده شود.",
-    save_continue:"ذخیره و ادامه",
-    wallet_title:"ساخت یا وارد کردن کیف پول", create_new:"ساخت جدید", import_existing:"وارد کردن",
-    word_count:"طول عبارت بازیابی", w12:"۱۲ کلمه", w18:"۱۸ کلمه", w24:"۲۴ کلمه",
-    pin:"پین", pin_hint:"۶ تا ۱۲ رقم", passphrase:"عبارت عبور (اختیاری)", passphrase_hint:"کلمهٔ بیست‌وپنجم اضافی. اگر مطمئن نیستید خالی بگذارید.",
-    generate:"ساخت کیف پول", import_phrase:"عبارت بازیابی", import_hint:"۱۲/۱۸/۲۴ کلمه را با فاصله وارد کنید.",
-    import_btn:"وارد کردن کیف پول",
-    mnemonic_title:"عبارت بازیابی شما", mnemonic_warn_1:"این کلمات را به‌ترتیب و آفلاین یادداشت کنید.",
-    mnemonic_warn_2:"این کلمات فقط یک‌بار نمایش داده می‌شوند. dibachain هرگز نمی‌تواند آن‌ها را بازیابی کند. هرکس این کلمات را داشته باشد به دارایی شما دسترسی دارد.",
-    written_down:"آن‌ها را یادداشت و ایمن نگه‌داری کردم.", continue:"ادامه",
-    wifi_title:"وای‌فای", wifi_sub:"اختیاری. می‌توانید کاملاً آفلاین (ایزوله) هم کار کنید.",
-    ap_ssid:"نام اکسس‌پوینت (AP SSID)", ap_pass:"رمز اکسس‌پوینت",
-    sta_ssid:"نام وای‌فای خانه (STA SSID)", sta_pass:"رمز وای‌فای خانه",
-    sta_updates_only:"وای‌فای خانه فقط برای به‌روزرسانی (توصیه‌شده)", finish:"پایان راه‌اندازی",
-    unlock_title:"پین را وارد کنید", unlock_sub:"برای ادامه DibaVault را باز کنید.",
-    unlock_btn:"باز کردن", attempts_left:"تلاش باقی‌مانده", wrong_pin:"پین اشتباه", clear:"پاک کردن",
-    tab_networks:"شبکه‌ها", tab_accounts:"حساب‌ها", tab_send:"ارسال", tab_offline:"امضای آفلاین", tab_settings:"تنظیمات",
-    networks_title:"شبکه‌ها و RPCها", networks_sub:"هر زنجیره و RPC دلخواه خود را اضافه کنید.",
-    add_network:"افزودن شبکه", family:"خانواده", name:"نام", chain_id:"شناسه زنجیره EVM",
-    rpc_url:"آدرس RPC", symbol:"نماد", decimals:"اعشار", explorer:"آدرس اکسپلورر (اختیاری)",
-    add:"افزودن", delete:"حذف", no_networks:"هنوز شبکه‌ای نیست. اولین زنجیره را بالا اضافه کنید.",
-    accounts_title:"حساب‌ها و موجودی", select_network:"انتخاب شبکه",
-    account:"حساب", balance:"موجودی", refresh:"تازه‌سازی", copy:"کپی", copied:"کپی شد",
-    watch_only:"فقط-خواندنی — استفاده در حالت فقط-مشاهده / هات‌اسپات ایمن است.", scan_qr:"برای دریافت اسکن کنید",
-    send_title:"ارسال تراکنش", to_addr:"آدرس گیرنده", amount:"مقدار",
-    token_contract:"قرارداد توکن (اختیاری)", token_decimals:"اعشار توکن",
-    build_tx:"بررسی تراکنش", review_title:"بررسی تراکنش", sign_device:"امضا روی دستگاه",
-    fee:"کارمزد شبکه", nonce:"نانس", gas:"گس", broadcast:"ارسال به شبکه", signed_tx:"تراکنش امضاشده",
-    txid:"شناسه تراکنش", edit:"ویرایش", confirm_device:"روی دستگاه تأیید کنید",
-    confirm_device_sub:"جزئیات را روی صفحهٔ DibaVault بررسی و تأیید کنید.",
-    offline_title:"امضای آفلاین ایزوله", offline_toggle:"حالت ایزوله (Air-gapped)",
-    offline_on:"رادیو خاموش است. دستگاه به هیچ شبکه‌ای متصل نیست.",
-    offline_off:"برای خاموش کردن همهٔ رادیوها و امضای کاملاً آفلاین روشن کنید.",
-    offline_sub:"تراکنش زیر را پر کنید (یا JSON امضانشده را بچسبانید). دستگاه بدون اتصال به شبکه آن را امضا می‌کند. نتیجهٔ امضاشده را با QR به دستگاه آنلاین ببرید.",
-    unsigned_json:"JSON تراکنش امضانشده (اختیاری)", sign_offline:"امضای آفلاین",
-    signed_result:"نتیجهٔ امضاشده", carry_qr:"روی دستگاه آنلاین اسکن کنید تا ارسال شود",
-    paste_signed:"یک نتیجهٔ امضاشده برای رمزگشایی بچسبانید",
-    settings_title:"تنظیمات", wifi_settings:"وای‌فای", save:"ذخیره",
-    ota_title:"به‌روزرسانی firmware", ota_check:"بررسی به‌روزرسانی", ota_current:"نسخهٔ فعلی",
-    ota_latest:"آخرین نسخه", ota_apply:"نصب به‌روزرسانی", ota_uptodate:"شما آخرین نسخه را دارید.",
-    ota_available:"به‌روزرسانی موجود است", hw_info:"اطلاعات سخت‌افزار", lock_now:"قفل کردن دستگاه",
-    updating:"در حال به‌روزرسانی… دستگاه را خاموش نکنید.",
-    required:"الزامی", loading:"در حال بارگذاری…", saved:"ذخیره شد", error:"خطا", close:"بستن", warning:"هشدار"
-  }
+  connecting:"Connecting to device…", lock:"Lock", locked:"Locked",
+  retry:"Retry", conn_fail:"Cannot reach the device", conn_fail_hint:"Make sure you are connected to the DibaVault Wi-Fi.",
+  // wizard
+  setup_title:"Device setup", setup_sub:"Let's provision your DibaVault.",
+  step_hw:"Hardware", step_wallet:"Wallet", step_wifi:"Wi-Fi & finish",
+  hw_title:"Hardware configuration", hw_sub:"Configure the display and buttons for on-device confirmation.",
+  display_type:"Display type", none:"None", confirm_mode:"Confirmation mode",
+  cm_none:"None (no physical confirm)", cm_1:"1 button", cm_2:"2 buttons", cm_3:"3 buttons",
+  i2c_sda:"I²C SDA GPIO", i2c_scl:"I²C SCL GPIO", i2c_addr:"I²C address (hex)",
+  btn_ok:"OK button GPIO", btn_cancel:"Cancel button GPIO", btn_up:"Up button GPIO", btn_down:"Down button GPIO",
+  active_low:"Buttons are active-low", hw_warn:"You selected no display and no buttons. Transactions cannot be verified on a trusted screen, which significantly weakens security. Use only for watch-only / testing.",
+  save_continue:"Save & continue",
+  // wallet
+  wallet_title:"Create or import wallet", create_new:"Create new", import_existing:"Import existing",
+  word_count:"Recovery phrase length", w12:"12 words", w18:"18 words", w24:"24 words",
+  pin:"PIN", pin_hint:"6–12 digits", passphrase:"Passphrase (optional)", passphrase_hint:"Extra 25th-word secret. Leave empty if unsure.",
+  generate:"Generate wallet", import_phrase:"Recovery phrase", import_hint:"Enter your 12/18/24 words separated by spaces.",
+  import_btn:"Import wallet",
+  mnemonic_title:"Your recovery phrase", mnemonic_warn_1:"Write these words down offline, in order.",
+  mnemonic_warn_2:"They are shown ONCE. dibachain can never recover them. Anyone with these words controls your funds.",
+  written_down:"I have written them down and stored them securely.", continue:"Continue",
+  // wifi
+  wifi_title:"Wi-Fi", wifi_sub:"Optional. You can run fully offline (air-gapped) too.",
+  ap_ssid:"Access-point name (AP SSID)", ap_pass:"Access-point password",
+  sta_ssid:"Home Wi-Fi name (STA SSID)", sta_pass:"Home Wi-Fi password",
+  sta_updates_only:"Only use home Wi-Fi for updates (recommended)", finish:"Finish setup",
+  // unlock
+  unlock_title:"Enter PIN", unlock_sub:"Unlock your DibaVault to continue.",
+  unlock_btn:"Unlock", attempts_left:"attempts left", wrong_pin:"Wrong PIN", clear:"Clear",
+  // dashboard tabs
+  tab_networks:"Networks", tab_accounts:"Accounts", tab_tokens:"Tokens", tab_send:"Send", tab_offline:"Offline signing", tab_settings:"Settings",
+  // networks
+  networks_title:"Networks & RPCs", networks_sub:"Add any chain and your own RPC endpoint.",
+  add_network:"Add network", family:"Family", name:"Name", chain_id:"EVM chain ID",
+  rpc_url:"RPC URL", symbol:"Symbol", decimals:"Decimals", explorer:"Explorer URL (optional)",
+  add:"Add", delete:"Delete", no_networks:"No networks yet. Add your first chain above.",
+  // accounts
+  accounts_title:"Accounts & balances", select_network:"Select network",
+  account:"Account", balance:"Balance", refresh:"Refresh", copy:"Copy", copied:"Copied",
+  watch_only:"Read-only — safe to use in watch-only / hotspot mode.", scan_qr:"Scan to receive",
+  // tokens
+  tokens_title:"Tokens", tokens_sub:"Manage ERC20 / TRC20 / SPL tokens for the selected network.",
+  add_token:"Add token", contract:"Contract address", no_tokens:"No tokens registered for this network yet.",
+  native_asset:"Native asset", asset:"Asset", token_name:"Token name",
+  // send
+  send_title:"Send transaction", to_addr:"Recipient address", amount:"Amount",
+  amount_hint:"Enter the amount in whole units (e.g. ETH, BTC, TRX, SOL) — not base units.",
+  build_tx:"Review transaction", review_title:"Review transaction", sign_device:"Sign on device",
+  fee:"Network fee", nonce:"Nonce", gas:"Gas", broadcast:"Broadcast", signed_tx:"Signed transaction",
+  txid:"Transaction ID", edit:"Edit", confirm_device:"Confirm on your device",
+  confirm_device_sub:"Check the details on the DibaVault screen and approve.",
+  // offline
+  offline_title:"Air-gapped offline signing", offline_toggle:"Air-gapped mode",
+  offline_on:"Radio is OFF. The device is not connected to any network.",
+  offline_off:"Turn on to disable all radios and sign fully offline.",
+  offline_sub:"Fill the transaction below (or paste unsigned JSON). The device signs it without ever touching the network. Carry the signed result to an online device via QR.",
+  unsigned_json:"Unsigned transaction JSON (optional)", sign_offline:"Sign offline",
+  signed_result:"Signed result", carry_qr:"Scan on your online device to broadcast",
+  paste_signed:"Paste a signed result to decode/verify",
+  // settings
+  settings_title:"Settings", wifi_settings:"Wi-Fi", save:"Save",
+  ota_title:"Firmware update", ota_check:"Check for updates", ota_current:"Current version",
+  ota_latest:"Latest version", ota_apply:"Install update", ota_uptodate:"You are on the latest version.",
+  ota_available:"Update available", hw_info:"Hardware info", lock_now:"Lock device now",
+  updating:"Updating firmware… do not power off.",
+  // generic
+  required:"required", loading:"Loading…", saved:"Saved", error:"Error", close:"Close", warning:"Warning"
 };
 
 /* ===========================================================================
  * 3) Small helpers
  * ==========================================================================*/
-var S = { lang:"en", status:null, view:null, tab:"networks", networks:[], airgap:false, review:null };
+var S = { status:null, view:null, tab:"networks", networks:[], tokensByNet:{}, tokNet:0, airgap:false, review:null };
 
-function t(k){ var d=I18N[S.lang]; return (d && d[k]!=null) ? d[k] : (I18N.en[k]!=null?I18N.en[k]:k); }
+function t(k){ return (I18N[k]!=null) ? I18N[k] : k; }
 function $(sel,root){ return (root||document).querySelector(sel); }
 function el(tag,attrs,kids){
   var e=document.createElement(tag);
@@ -424,6 +372,32 @@ function formValues(form){
   return o;
 }
 
+// --- Fixed-point helpers (string math; no float rounding, no BigInt dep) ---
+// Format a base-unit integer string into a human decimal string.
+function formatUnits(value,decimals){
+  var s=String(value==null?"0":value).trim();
+  var neg=s.charAt(0)==="-"; if(neg)s=s.slice(1);
+  s=s.replace(/[^0-9]/g,"")||"0";
+  decimals=+decimals||0;
+  if(decimals===0) return (neg?"-":"")+((s.replace(/^0+/,""))||"0");
+  while(s.length<=decimals) s="0"+s;
+  var intp=s.slice(0,s.length-decimals).replace(/^0+/,"")||"0";
+  var frac=s.slice(s.length-decimals).replace(/0+$/,"");
+  return (neg?"-":"")+intp+(frac?("."+frac):"");
+}
+// Convert a human decimal string into a base-unit integer string (amount * 10^decimals).
+function toBaseUnits(amount,decimals){
+  var s=String(amount==null?"":amount).trim();
+  if(!s) return "0";
+  var neg=s.charAt(0)==="-"; if(neg)s=s.slice(1);
+  var parts=s.split("."), intp=(parts[0]||"0").replace(/[^0-9]/g,""), frac=(parts[1]||"").replace(/[^0-9]/g,"");
+  decimals=+decimals||0;
+  if(frac.length>decimals) frac=frac.slice(0,decimals);     // truncate excess precision
+  while(frac.length<decimals) frac+="0";
+  var digits=(intp+frac).replace(/^0+/,"")||"0";
+  return (neg&&digits!=="0"?"-":"")+digits;
+}
+
 /* ===========================================================================
  * 4) Modal (device confirmation etc.)
  * ==========================================================================*/
@@ -444,13 +418,6 @@ function deviceWaitModal(){
 /* ===========================================================================
  * 5) Top bar / chrome
  * ==========================================================================*/
-function applyLang(){
-  document.documentElement.lang=S.lang;
-  document.documentElement.dir = S.lang==="fa"?"rtl":"ltr";
-  $("#langToggle").textContent = S.lang==="fa"?"EN":"FA";
-  document.querySelectorAll("[data-i18n]").forEach(function(n){ n.textContent=t(n.getAttribute("data-i18n")); });
-  render(); // re-render current view in new language
-}
 function updateChrome(){
   var st=S.status||{};
   $("#topbar").hidden=false; $("#footer").hidden=false;
@@ -703,7 +670,7 @@ function viewUnlock(){
 /* ---------------- C) DASHBOARD ---------------- */
 function viewDashboard(){
   updateChrome();
-  var tabs=[["networks","tab_networks"],["accounts","tab_accounts"],["send","tab_send"],["offline","tab_offline"],["settings","tab_settings"]];
+  var tabs=[["networks","tab_networks"],["accounts","tab_accounts"],["tokens","tab_tokens"],["send","tab_send"],["offline","tab_offline"],["settings","tab_settings"]];
   var tabBar=el("div",{class:"tabs"}, tabs.map(function(tb){
     return el("button",{class:"tab"+(S.tab===tb[0]?" active":""),onClick:function(){ S.tab=tb[0]; render(); }},t(tb[1]));
   }));
@@ -711,6 +678,7 @@ function viewDashboard(){
   mount(el("div",{class:"view"},[ tabBar, content ]));
   if(S.tab==="networks") tabNetworks(content);
   else if(S.tab==="accounts") tabAccounts(content);
+  else if(S.tab==="tokens") tabTokens(content);
   else if(S.tab==="send") tabSend(content);
   else if(S.tab==="offline") tabOffline(content);
   else tabSettings(content);
@@ -821,21 +789,157 @@ async function loadAccount(netIdx,out){
   }catch(e){ out.innerHTML=""; apiErr(e); out.appendChild(el("p",{class:"danger-text",text:e.message||t("error")})); }
 }
 
+// --- Tokens (ERC20 / TRC20 / SPL) ---
+async function loadTokensFor(netIdx){
+  netIdx=+netIdx;
+  try{
+    var r=await api("/api/tokens?net_idx="+netIdx);
+    var toks=r.tokens||r||[];
+    S.tokensByNet[netIdx]=toks;
+    return toks;
+  }catch(e){ S.tokensByNet[netIdx]=[]; return []; }
+}
+
+// Resolve the first receive address for a network (used to query balances).
+async function firstAddress(netIdx){
+  var nw=S.networks[netIdx]||{};
+  try{
+    var acc=await api("/api/accounts?chain="+encodeURIComponent(nw.family||"")+"&net_idx="+netIdx);
+    var list=acc.accounts||acc.addresses||(acc.address?[{address:acc.address}]:[]);
+    if(list.length){ var a=list[0]; return a.address||a; }
+  }catch(e){}
+  return null;
+}
+
+function tabTokens(root){
+  root.innerHTML="";
+  if(!S.networks.length){ root.appendChild(el("div",{class:"card center"},[ el("p",{text:t("no_networks")}) ])); return; }
+  if(S.tokNet>=S.networks.length) S.tokNet=0;
+
+  var netSel=sel("net",netOptions(),String(S.tokNet));
+  var listCard=el("div",{class:"card"});
+
+  var form=el("form",{class:"card card-accent"});
+  form.append(
+    el("h2",{text:t("tokens_title")}),
+    el("p",{text:t("tokens_sub")}),
+    field("select_network",netSel),
+    el("div",{class:"grid grid-2"},[
+      field("symbol",inp("symbol",{placeholder:"USDT"})),
+      field("token_name",inp("name",{placeholder:"Tether USD"}))
+    ]),
+    field("contract",inp("contract",{placeholder:"0x… / T… / mint address"}),null,true),
+    field("decimals",inp("decimals",{type:"number",value:"6"})),
+    el("button",{class:"btn btn-primary btn-block mt",type:"submit"},t("add_token"))
+  );
+  form.addEventListener("submit",async function(ev){
+    ev.preventDefault();
+    var v=formValues(form);
+    if(!(v.contract||"").trim()){ toast(t("contract")+": "+t("required"),"err"); return; }
+    var payload={ net_idx:+netSel.value, symbol:(v.symbol||"").trim(), name:(v.name||"").trim(),
+                  contract:(v.contract||"").trim(), decimals:+v.decimals||0 };
+    var btn=form.querySelector("button[type=submit]"); btn.disabled=true;
+    try{ await api("/api/tokens","POST",payload); toast(t("saved"),"ok");
+      form.querySelector("[name=symbol]").value=""; form.querySelector("[name=name]").value=""; form.querySelector("[name=contract]").value="";
+      await refresh();
+    }catch(e){ apiErr(e); }
+    btn.disabled=false;
+  });
+
+  netSel.addEventListener("change",function(){ S.tokNet=+netSel.value; refresh(); });
+
+  async function refresh(){
+    var netIdx=+netSel.value;
+    listCard.innerHTML=""; listCard.append(el("h2",{text:t("tokens_title")}), el("div",{class:"center mt"},[el("div",{class:"spinner"})]));
+    var toks=await loadTokensFor(netIdx);
+    var addr=await firstAddress(netIdx);
+    // ignore stale responses if the user switched networks meanwhile
+    if(+netSel.value!==netIdx) return;
+    listCard.innerHTML=""; listCard.append(el("h2",{text:t("tokens_title")}));
+    if(!toks.length){ listCard.append(el("p",{class:"center",text:t("no_tokens")})); return; }
+    var nw=S.networks[netIdx]||{};
+    var list=el("div",{class:"list"}, toks.map(function(tk,i){
+      var meta=[];
+      if(tk.family)meta.push(tk.family);
+      if(tk.contract)meta.push(tk.contract);
+      meta.push(t("decimals")+" "+tk.decimals);
+      var bal=el("span",{class:"v big",text:"…"});
+      if(addr){
+        api("/api/token/balance?net_idx="+netIdx+"&token_idx="+i+"&address="+encodeURIComponent(addr))
+          .then(function(b){ bal.textContent=formatUnits(b.balance,b.decimals!=null?b.decimals:tk.decimals)+" "+(b.symbol||tk.symbol||""); })
+          .catch(function(){ bal.textContent="—"; });
+      }else{ bal.textContent="—"; }
+      return el("div",{class:"list-item"},[
+        el("div",{class:"grow"},[
+          el("div",{class:"title"},[ (tk.symbol||"?"), " ", el("span",{class:"tag",text:tk.name||""}) ]),
+          el("div",{class:"meta",text:meta.join(" · ")}),
+          el("div",{class:"kv mt"},[ el("span",{class:"k",text:t("balance")}), bal ])
+        ]),
+        el("button",{class:"btn btn-danger btn-sm",onClick:async function(){
+          try{ await api("/api/tokens/"+tk.idx,"DELETE"); await refresh(); }catch(e){ apiErr(e); }
+        }},t("delete"))
+      ]);
+    }));
+    listCard.append(list);
+  }
+
+  root.append(form,listCard);
+  refresh();
+}
+
 // --- Send transaction ---
 function sendForm(prefix){
   // Shared builder used by Send + Offline tabs. `prefix` distinguishes ids.
   var form=el("form");
   var netSel=sel("net",netOptions(),"0");
+  var assetSel=el("select",{name:"asset"});
+
+  // Populate the asset dropdown for a network: native + that network's tokens.
+  function fillAssets(netIdx){
+    assetSel.innerHTML="";
+    var nw=S.networks[netIdx]||{};
+    assetSel.appendChild(el("option",{value:"native",text:t("native_asset")+(nw.symbol?(" ("+nw.symbol+")"):"")}));
+    loadTokensFor(netIdx).then(function(toks){
+      if(+netSel.value!==netIdx) return; // network changed while loading
+      toks.forEach(function(tk,i){
+        assetSel.appendChild(el("option",{value:"tok:"+i,text:(tk.symbol||"?")+" — "+(tk.name||t("tokens_title"))}));
+      });
+    });
+  }
+  netSel.addEventListener("change",function(){ fillAssets(+netSel.value); });
+
   form.append(
     field("select_network",netSel),
-    field("to_addr",inp("to",{placeholder:"0x… / bc1… ",required:true}),null,true),
-    field("amount",inp("amount",{type:"text",inputmode:"decimal",placeholder:"0.0",required:true}),null,true),
-    el("div",{class:"grid grid-2"},[
-      field("token_contract",inp("token",{placeholder:"0x… (leave empty for native)"})),
-      field("token_decimals",inp("token_decimals",{type:"number",placeholder:"18"}))
-    ])
+    field("asset",assetSel),
+    field("to_addr",inp("to",{placeholder:"0x… / bc1… / T…",required:true}),null,true),
+    field("amount",inp("amount",{type:"text",inputmode:"decimal",placeholder:"0.0",required:true}),"amount_hint",true)
   );
-  return { form:form, values:function(){ return formValues(form); } };
+  fillAssets(0);
+
+  // Build the request payload. The firmware treats `amount` as an INTEGER in
+  // base units for EVERY asset, so we always convert the whole-unit input:
+  //  - tokens: use the token's decimals (+ send token_contract/token_decimals)
+  //  - native: use the selected network's decimals (no token fields)
+  function resolved(){
+    var v=formValues(form);
+    var netIdx=+v.net;
+    var nw=S.networks[netIdx]||{};
+    var out={ net_idx:netIdx, to:(v.to||"").trim() };
+    var asset=v.asset||"native";
+    var toks=S.tokensByNet[netIdx]||[];
+    var tk=(asset.indexOf("tok:")===0)?toks[+asset.slice(4)]:null;
+    if(tk){
+      out.token_contract=tk.contract;
+      out.token_decimals=tk.decimals;
+      out.amount=toBaseUnits(v.amount,tk.decimals);
+    }else{
+      var natDec=(nw.decimals!=null?+nw.decimals:18);
+      out.amount=toBaseUnits(v.amount,natDec);
+    }
+    return out;
+  }
+
+  return { form:form, values:function(){ return formValues(form); }, resolved:resolved };
 }
 
 function tabSend(root){
@@ -848,12 +952,12 @@ function tabSend(root){
   sf.form.appendChild(buildBtn);
   sf.form.addEventListener("submit",async function(ev){
     ev.preventDefault();
-    var v=sf.values();
-    var payload={ net_idx:+v.net, to:v.to, amount:v.amount, token:v.token||null, token_decimals:v.token_decimals?+v.token_decimals:null };
+    var payload=sf.resolved();
+    var tokenInfo=(payload.token_contract!=null)?{ token_contract:payload.token_contract, token_decimals:payload.token_decimals }:null;
     buildBtn.disabled=true;
     try{
       var built=await api("/api/tx/build","POST",payload);
-      S.review=built; renderReview(reviewHost,built,+v.net);
+      S.review=built; renderReview(reviewHost,built,payload.net_idx,tokenInfo);
     }catch(e){ apiErr(e); }
     buildBtn.disabled=false;
   });
@@ -861,14 +965,20 @@ function tabSend(root){
   root.appendChild(card);
 }
 
-function renderReview(host,tx,netIdx){
+function renderReview(host,tx,netIdx,tokenInfo){
   host.innerHTML="";
   function kv(k,val){ return val==null||val===""?null:el("div",{class:"kv"},[ el("span",{class:"k",text:t(k)}), el("span",{class:"v",text:String(val)}) ]); }
-  var signBtn=el("button",{class:"btn btn-primary",onClick:function(){ signOnDevice(tx,netIdx,host); }},t("sign_device"));
+  // Amount is base units on the wire; show it human-readable using the token
+  // decimals for tokens, or the network decimals for the native asset.
+  var nw=S.networks[netIdx]||{};
+  var amtDec=tokenInfo?tokenInfo.token_decimals:(nw.decimals!=null?+nw.decimals:18);
+  var amtStr=(tx.amount!=null?formatUnits(tx.amount,amtDec):"")+" "+(tx.symbol||nw.symbol||"");
+  var signBtn=el("button",{class:"btn btn-primary",onClick:function(){ signOnDevice(tx,netIdx,host,tokenInfo); }},t("sign_device"));
   host.appendChild(el("div",{class:"card card-accent"},[
     el("h3",{text:t("review_title")}),
     kv("to_addr",tx.to),
-    el("div",{class:"kv"},[ el("span",{class:"k",text:t("amount")}), el("span",{class:"v big",text:(tx.amount!=null?tx.amount:"")+" "+(tx.symbol||"")}) ]),
+    el("div",{class:"kv"},[ el("span",{class:"k",text:t("amount")}), el("span",{class:"v big",text:amtStr}) ]),
+    tokenInfo?kv("contract",tokenInfo.token_contract):null,
     kv("fee",tx.fee!=null?(tx.fee+" "+(tx.fee_symbol||tx.symbol||"")):null),
     kv("gas",tx.gas||tx.gas_limit),
     kv("nonce",tx.nonce),
@@ -876,10 +986,12 @@ function renderReview(host,tx,netIdx){
   ]));
 }
 
-async function signOnDevice(tx,netIdx,host){
+async function signOnDevice(tx,netIdx,host,tokenInfo){
   deviceWaitModal();
   try{
-    var res=await api("/api/tx/sign","POST",{net_idx:netIdx,tx:tx});
+    var signBody={net_idx:netIdx,tx:tx};
+    if(tokenInfo){ signBody.token_contract=tokenInfo.token_contract; signBody.token_decimals=tokenInfo.token_decimals; }
+    var res=await api("/api/tx/sign","POST",signBody);
     closeModal();
     var out=el("div",{class:"card"});
     out.append(el("h3",{text:t("signed_tx")}));
@@ -921,11 +1033,10 @@ function tabOffline(root){
   var jsonField=field("unsigned_json",el("textarea",{name:"json",placeholder:'{"to":"0x…","value":"…"}'}));
   var out=el("div",{class:"mt"});
   var signBtn=el("button",{class:"btn btn-primary btn-block mt",onClick:async function(){
-    var v=sf.values();
     var payload;
     var raw=jsonField.querySelector("textarea").value.trim();
     if(raw){ try{ payload={tx:JSON.parse(raw)}; }catch(e){ toast("JSON: "+t("error"),"err"); return; } }
-    else payload={ net_idx:+v.net, to:v.to, amount:v.amount, token:v.token||null, token_decimals:v.token_decimals?+v.token_decimals:null };
+    else payload=sf.resolved();
     signBtn.disabled=true;
     deviceWaitModal();
     try{
@@ -1064,15 +1175,8 @@ async function boot(){
  * 8) Init
  * ==========================================================================*/
 function init(){
-  // restore language preference
-  try{ var l=localStorage.getItem("dv_lang"); if(l) S.lang=l; }catch(e){}
-  $("#langToggle").addEventListener("click",function(){
-    S.lang = S.lang==="fa"?"en":"fa";
-    try{ localStorage.setItem("dv_lang",S.lang); }catch(e){}
-    applyLang();
-  });
+  document.documentElement.lang="en";
   $("#lockBtn").addEventListener("click",lockDevice);
-  applyLang();       // sets dir/lang + labels
   boot();            // load status and route
 }
 

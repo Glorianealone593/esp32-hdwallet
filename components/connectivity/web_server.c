@@ -5,6 +5,7 @@
 #include "web_server.h"
 #include "vault_ipc.h"
 #include "net_config.h"
+#include "tokens_config.h"
 #include "wifi_mgr.h"
 #include "rpc_client.h"
 #include "ota.h"
@@ -201,6 +202,65 @@ static esp_err_t h_networks_delete(httpd_req_t *r){
     cJSON *ok=cJSON_CreateObject(); cJSON_AddBoolToObject(ok,"ok",true); return send_json(r,ok);
 }
 
+// ---- tokens (ERC20 / TRC20 / SPL) ----
+static esp_err_t h_tokens_get(httpd_req_t *r){
+    // Optional ?net_idx= filters to tokens for that network's (family, chain_id).
+    char q[48]; long ni=-1;
+    if(httpd_req_get_url_query_str(r,q,sizeof(q))==ESP_OK){ char v[16];
+        if(httpd_query_key_value(q,"net_idx",v,sizeof(v))==ESP_OK) ni=atoi(v); }
+    dv_network_t net; bool filter = (ni>=0 && net_config_get(ni,&net)==DV_OK);
+    cJSON *arr=cJSON_CreateArray();
+    for(size_t i=0;i<DV_TOKEN_MAX;i++){ dv_token_t t;
+        if(tokens_config_get(i,&t)!=DV_OK) continue;
+        if(filter && !(t.family==net.family && t.evm_chain_id==net.evm_chain_id)) continue;
+        cJSON *o=cJSON_CreateObject();
+        cJSON_AddNumberToObject(o,"idx",i); cJSON_AddNumberToObject(o,"family",t.family);
+        cJSON_AddNumberToObject(o,"evm_chain_id",t.evm_chain_id);
+        cJSON_AddStringToObject(o,"symbol",t.symbol); cJSON_AddStringToObject(o,"name",t.name);
+        cJSON_AddStringToObject(o,"contract",t.contract); cJSON_AddNumberToObject(o,"decimals",t.decimals);
+        cJSON_AddItemToArray(arr,o);
+    }
+    cJSON *j=cJSON_CreateObject(); cJSON_AddItemToObject(j,"tokens",arr); return send_json(r,j);
+}
+static esp_err_t h_tokens_post(httpd_req_t *r){
+    char *b=read_body(r); if(!b) return send_err(r,"bad_body",NULL);
+    cJSON *j=cJSON_Parse(b); free(b); if(!j) return send_err(r,"bad_json",NULL);
+    dv_token_t t; memset(&t,0,sizeof(t)); t.used=true; cJSON *x;
+    // Inherit family/chain_id from the referenced network when given.
+    cJSON *nix=cJSON_GetObjectItem(j,"net_idx");
+    if(cJSON_IsNumber(nix)){ dv_network_t n; if(net_config_get(nix->valueint,&n)==DV_OK){ t.family=n.family; t.evm_chain_id=n.evm_chain_id; } }
+    if((x=cJSON_GetObjectItem(j,"family"))&&cJSON_IsString(x)) t.family=family_from_str(x->valuestring);
+    if((x=cJSON_GetObjectItem(j,"evm_chain_id"))&&cJSON_IsNumber(x)) t.evm_chain_id=(uint64_t)x->valuedouble;
+    if((x=cJSON_GetObjectItem(j,"symbol"))&&cJSON_IsString(x)) strlcpy(t.symbol,x->valuestring,sizeof(t.symbol));
+    if((x=cJSON_GetObjectItem(j,"name"))&&cJSON_IsString(x)) strlcpy(t.name,x->valuestring,sizeof(t.name));
+    if((x=cJSON_GetObjectItem(j,"contract"))&&cJSON_IsString(x)) strlcpy(t.contract,x->valuestring,sizeof(t.contract));
+    if((x=cJSON_GetObjectItem(j,"decimals"))&&cJSON_IsNumber(x)) t.decimals=x->valueint;
+    cJSON_Delete(j);
+    if(!t.contract[0]) return send_err(r,"no_contract",NULL);
+    if(tokens_config_add(&t)!=DV_OK) return send_err(r,"add_failed",NULL);
+    cJSON *ok=cJSON_CreateObject(); cJSON_AddBoolToObject(ok,"ok",true); return send_json(r,ok);
+}
+static esp_err_t h_tokens_delete(httpd_req_t *r){
+    const char *p=strrchr(r->uri,'/'); size_t idx=p?atoi(p+1):999;
+    if(tokens_config_remove(idx)!=DV_OK) return send_err(r,"del_failed",NULL);
+    cJSON *ok=cJSON_CreateObject(); cJSON_AddBoolToObject(ok,"ok",true); return send_json(r,ok);
+}
+static esp_err_t h_token_balance(httpd_req_t *r){
+    char q[160]; size_t ni=0,ti=0; char addr[96]="";
+    if(httpd_req_get_url_query_str(r,q,sizeof(q))==ESP_OK){ char v[16];
+        if(httpd_query_key_value(q,"net_idx",v,sizeof(v))==ESP_OK) ni=atoi(v);
+        if(httpd_query_key_value(q,"token_idx",v,sizeof(v))==ESP_OK) ti=atoi(v);
+        httpd_query_key_value(q,"address",addr,sizeof(addr)); }
+    dv_network_t n; if(net_config_get(ni,&n)!=DV_OK) return send_err(r,"bad_net",NULL);
+    dv_token_t t; if(tokens_config_get(ti,&t)!=DV_OK) return send_err(r,"bad_token",NULL);
+    char bal[80]="0";
+    if(rpc_get_token_balance(&n,t.contract,addr,t.decimals,bal,sizeof(bal))!=DV_OK)
+        return send_err(r,"rpc_failed","token balance query failed");
+    cJSON *j=cJSON_CreateObject(); cJSON_AddStringToObject(j,"balance",bal);
+    cJSON_AddNumberToObject(j,"decimals",t.decimals); cJSON_AddStringToObject(j,"symbol",t.symbol);
+    return send_json(r,j);
+}
+
 // ---- accounts / balance ----
 static esp_err_t h_accounts(httpd_req_t *r){
     char q[64]; size_t ni=0;
@@ -237,6 +297,7 @@ static int build_unsigned(cJSON *j,dv_network_t *n,dv_unsigned_tx_t *tx){
     if((x=cJSON_GetObjectItem(j,"amount"))&&cJSON_IsString(x)) tx->value_len=dec_to_be(x->valuestring,tx->value);
     if((x=cJSON_GetObjectItem(j,"token_contract"))&&cJSON_IsString(x)&&x->valuestring[0])
         strlcpy(tx->token_contract,x->valuestring,sizeof(tx->token_contract));
+    if((x=cJSON_GetObjectItem(j,"token_decimals"))&&cJSON_IsNumber(x)) tx->token_decimals=x->valueint;
     if((x=cJSON_GetObjectItem(j,"nonce"))&&cJSON_IsNumber(x)) tx->nonce=(uint64_t)x->valuedouble;
     if((x=cJSON_GetObjectItem(j,"eip1559"))&&cJSON_IsBool(x)) tx->eip1559=cJSON_IsTrue(x);
     return tx->to[0]?0:-1;
@@ -378,6 +439,9 @@ dv_err_t web_server_start(void){
     reg("/api/unlock",HTTP_POST,h_unlock);     reg("/api/lock",HTTP_POST,h_lock);
     reg("/api/networks",HTTP_GET,h_networks_get); reg("/api/networks",HTTP_POST,h_networks_post);
     reg("/api/networks/*",HTTP_DELETE,h_networks_delete);
+    reg("/api/tokens",HTTP_GET,h_tokens_get);  reg("/api/tokens",HTTP_POST,h_tokens_post);
+    reg("/api/tokens/*",HTTP_DELETE,h_tokens_delete);
+    reg("/api/token/balance",HTTP_GET,h_token_balance);
     reg("/api/accounts",HTTP_GET,h_accounts);  reg("/api/balance",HTTP_GET,h_balance);
     reg("/api/tx/build",HTTP_POST,h_tx_build); reg("/api/tx/sign",HTTP_POST,h_tx_sign);
     reg("/api/tx/broadcast",HTTP_POST,h_tx_broadcast);

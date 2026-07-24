@@ -3,6 +3,7 @@
 idf_component_register(
     SRCS
         "net_config.c"
+        "tokens_config.c"
         "wifi_mgr.c"
         "rpc_client.c"
         "ota.c"

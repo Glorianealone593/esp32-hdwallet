@@ -43,9 +43,9 @@ ESP-IDF component.
 |---|---|---|---|
 | [`secure_core`](../components/secure_core) | **Trusted** | The vault. Holds the seed and keys; derives accounts (BIP32/39); signs (secp256k1 / ed25519); binds the ESP32 hardware TRNG; runs the confirmation gate. Exposes **only** the IPC. | `vault_ipc.h`, `keystore.h`, `confirm.h`, `dv_types.h` |
 | [`chains`](../components/chains) | Shared (pure) | Chain abstraction: address encoding, canonical sighash, signed-tx serialization, human-readable review lines. **Pure** functions — no keys, no network, no storage. One `dv_chain_ops_t` vtable per chain family. | `chains.h` |
-| [`trezor-crypto`](../components/trezor-crypto) | Trusted (used by core) | Vendored cryptography (ECDSA/secp256k1, ed25519, BIP32/39, hashes, base58, segwit). Git submodule under `lib/`. Upstream stub RNG is **not** compiled. | (submodule) |
+| [`trezor-crypto`](../components/trezor-crypto) | Trusted (used by core) | Vendored cryptography (ECDSA/secp256k1, ed25519, BIP32/39, hashes, base58, segwit). Git submodule of the [trezor-firmware](https://github.com/trezor/trezor-firmware) monorepo at `lib/`; **only its `crypto/` directory is built** (a curated source list). Upstream stub RNG is **not** compiled. | (submodule) |
 | [`hal`](../components/hal) | Support | Hardware abstraction: display (SSD1306/SH1106/ST7789), buttons, and the persisted runtime config describing the wiring. | `hal_config.h`, `display.h`, `button.h` |
-| [`connectivity`](../components/connectivity) | **Untrusted** | WiFi AP/STA manager, HTTP web server + JSON API, RPC clients (balances / tx building / broadcast), signed OTA, and the user-managed network/RPC registry. Links only against `vault_ipc.h`. | `wifi_mgr.h`, `web_server.h`, `rpc_client.h`, `net_config.h`, `ota.h` |
+| [`connectivity`](../components/connectivity) | **Untrusted** | WiFi AP/STA manager, HTTP web server + JSON REST API, RPC clients (balances / tx building / broadcast), signed OTA, the user-managed network/RPC registry, and the **token registry** (ERC-20 / TRC-20 / SPL). Links only against `vault_ipc.h`. | `wifi_mgr.h`, `web_server.h`, `rpc_client.h`, `net_config.h`, `tokens_config.h`, `ota.h` |
 | [`console`](../components/console) | Local (privileged) | Serial/USB REPL. A **local** origin, so it may do things HTTP may not: reveal the mnemonic at setup, factory reset, and drive fully-offline signing. | `console_ui.h` |
 
 Boundary rules:
@@ -56,6 +56,29 @@ Boundary rules:
 - `chains` is pure and may be called from **either** side: by the vault to
   recompute the sighash and serialize the final signed tx, and by the connectivity
   layer to format addresses for display.
+
+### REST API surface
+
+The connectivity layer exposes the device's functionality as a JSON REST API over
+HTTP (served by `web_server.c`), used by the embedded web UI and by external clients
+such as a planned companion app. It covers status, provisioning, unlock/lock, the
+network and token registries, account/balance reads, and the build → sign → broadcast
+transaction flow. Every key operation is delegated to the vault with the **remote**
+origin so remote policy applies (physical confirmation, no mnemonic over HTTP). The
+full endpoint-by-endpoint reference is in [`API.md`](API.md).
+
+### Non-sensitive registries
+
+Two user-managed registries live in the normal (non-encrypted) `nvs` partition and
+are edited from the web UI / console / REST API:
+
+- **Networks** (`net_config.h`, up to 32) — chains and their RPC endpoints; "bring
+  your own chain".
+- **Tokens** (`tokens_config.h`, up to 64) — ERC-20 / TRC-20 / SPL contracts matched
+  to a network by `(family, evm_chain_id)`; "manage any token".
+
+Neither holds secrets; they are configuration only. Keys and the seed remain solely
+in the encrypted `nvs_secure` partition owned by the secure core.
 
 ## The vault IPC boundary
 
@@ -157,7 +180,7 @@ ESP32-C3). The 8 MB table:
 
 | Partition | Type / SubType | Purpose | Sensitive? |
 |---|---|---|---|
-| `nvs` | data / nvs | General settings, incl. the user-managed **network/RPC registry** and HAL config. | No (non-secret config) |
+| `nvs` | data / nvs | General settings, incl. the user-managed **network/RPC registry**, the **token registry**, and HAL config. | No (non-secret config) |
 | `otadata` | data / ota | Tracks which OTA slot is active. | No |
 | `phy_init` | data / phy | RF PHY calibration data. | No |
 | `nvs_secure` | data / nvs (**encrypted**) | The **seed / key material**, stored encrypted and PIN-wrapped. | **Yes** |

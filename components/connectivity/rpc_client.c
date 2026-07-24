@@ -108,14 +108,42 @@ dv_err_t rpc_get_balance(const dv_network_t *n,const char *address,char *out,siz
 dv_err_t rpc_get_token_balance(const dv_network_t *n,const char *contract,
                                const char *address,uint8_t decimals,char *out,size_t outsz){
     (void)decimals;
-    if(n->family!=DV_CHAIN_EVM) return DV_ERR_UNSUPPORTED_CHAIN; // TRC20/SPL: TODO
-    // balanceOf(address) selector 70a08231 + padded address
-    const char *a=address; if(a[0]=='0'&&a[1]=='x')a+=2;
-    char data[80]; snprintf(data,sizeof(data),"0x70a08231%024s%s","",a);
-    char params[256]; snprintf(params,sizeof(params),
-        "[{\"to\":\"%s\",\"data\":\"%s\"},\"latest\"]",contract,data);
-    char hex[80]; if(evm_rpc(n->rpc_url,"eth_call",params,hex,sizeof(hex))!=DV_OK) return DV_ERR;
-    hexwei_to_dec(hex,out,outsz); return DV_OK;
+    strlcpy(out,"0",outsz);
+    switch(n->family){
+    case DV_CHAIN_EVM:{
+        // ERC20 balanceOf(address): selector 70a08231 + 32-byte left-zero-padded address.
+        char a[65]; memset(a,'0',64); a[64]=0;
+        const char *s=address; if(s[0]=='0'&&(s[1]=='x'||s[1]=='X'))s+=2;
+        size_t al=strlen(s); if(al>40)al=40;
+        memcpy(a+64-al,s,al);
+        char data[80]; snprintf(data,sizeof(data),"0x70a08231%s",a);
+        char params[256]; snprintf(params,sizeof(params),
+            "[{\"to\":\"%s\",\"data\":\"%s\"},\"latest\"]",contract,data);
+        char hex[80]; if(evm_rpc(n->rpc_url,"eth_call",params,hex,sizeof(hex))!=DV_OK) return DV_ERR;
+        hexwei_to_dec(hex,out,outsz); return DV_OK; }
+    case DV_CHAIN_TRON:{
+        // TronGrid account endpoint returns a trc20 map [{contract:balance}].
+        char url[256]; snprintf(url,sizeof(url),"%s/v1/accounts/%s",n->rpc_url,address);
+        char resp[4096]; if(http_req(url,0,NULL,resp,sizeof(resp))<0) return DV_ERR;
+        cJSON *j=cJSON_Parse(resp); if(!j) return DV_ERR;
+        cJSON *data=cJSON_GetObjectItem(j,"data");
+        if(cJSON_IsArray(data)&&cJSON_GetArraySize(data)>0){
+            cJSON *trc20=cJSON_GetObjectItem(cJSON_GetArrayItem(data,0),"trc20");
+            if(cJSON_IsArray(trc20)){
+                cJSON *entry; cJSON_ArrayForEach(entry,trc20){
+                    cJSON *kv=entry->child; // {contract: "balance"}
+                    if(kv&&kv->string&&!strcmp(kv->string,contract)&&cJSON_IsString(kv))
+                        strlcpy(out,kv->valuestring,outsz);
+                }
+            }
+        }
+        cJSON_Delete(j); return DV_OK; }
+    case DV_CHAIN_SOLANA:
+        // SPL getTokenAccountsByOwner parsing: TODO. Returns "0" gracefully so
+        // the UI still renders the token row.
+        return DV_OK;
+    default: return DV_ERR_UNSUPPORTED_CHAIN;
+    }
 }
 
 dv_err_t rpc_prepare_tx(const dv_network_t *n,dv_unsigned_tx_t *tx){

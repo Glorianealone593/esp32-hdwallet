@@ -34,19 +34,27 @@ to enable production security fuses and signing keys.
 The CI/release pipeline uses the `espressif/idf:release-v5.3` Docker image; you can
 reproduce a build locally with the same image if you prefer not to install IDF.
 
-## Get the source (with submodules)
+## Get the source (with the crypto submodule)
 
-trezor-crypto is a git submodule — you **must** clone recursively.
+The cryptography lives in a git submodule at `components/trezor-crypto/lib`, which is
+the **[trezor-firmware](https://github.com/trezor/trezor-firmware) monorepo**.
+DibaVault builds **only its `crypto/` directory** (a curated source list in
+[`components/trezor-crypto/CMakeLists.txt`](../components/trezor-crypto/CMakeLists.txt)).
+
+Initialize the submodule **shallow and non-recursively**. Do **not** use
+`--recursive`: trezor-firmware declares many nested submodules DibaVault does not
+need, and pulling them all is slow and unnecessary.
 
 ```bash
-git clone --recursive https://github.com/dibachain/esp32-hdwallet.git
+git clone https://github.com/AliAkrami1375/esp32-hdwallet.git
 cd esp32-hdwallet
 
-# If you already cloned without --recursive:
-git submodule update --init --recursive
+# Fetch ONLY the trezor-firmware submodule, shallow (no nested submodules):
+git submodule update --init --depth 1
 ```
 
-The build fails fast with a clear message if the submodule is missing.
+The build fails fast with a clear message if the submodule (specifically
+`lib/crypto/bip32.c`) is missing.
 
 ## Build & flash per target
 
