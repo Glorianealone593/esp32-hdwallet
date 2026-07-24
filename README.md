@@ -56,6 +56,7 @@ app — can integrate with the device.
 
 ## Table of contents
 
+- [Screenshots](#screenshots)
 - [Features](#features)
 - [Supported chains](#supported-chains)
 - [Token management](#token-management)
@@ -72,6 +73,25 @@ app — can integrate with the device.
 - [License](#license)
 
 ---
+
+## Screenshots
+
+The built-in web UI (served from the device over its WiFi hotspot) — a clean,
+English, mobile-friendly control panel. Watch-only features work in hotspot mode;
+signing always requires on-device confirmation.
+
+<table>
+<tr>
+<td width="33%" align="center"><img src="docs/screenshots/01-setup.png" alt="First-run setup"/><br/><sub><b>First-run setup</b> — pick your hardware</sub></td>
+<td width="33%" align="center"><img src="docs/screenshots/02-unlock.png" alt="Unlock"/><br/><sub><b>Unlock</b> — PIN with attempt lockout</sub></td>
+<td width="33%" align="center"><img src="docs/screenshots/03-networks.png" alt="Networks"/><br/><sub><b>Networks</b> — add any chain + RPC</sub></td>
+</tr>
+<tr>
+<td width="33%" align="center"><img src="docs/screenshots/04-accounts.png" alt="Accounts"/><br/><sub><b>Accounts</b> — addresses, balances, QR</sub></td>
+<td width="33%" align="center"><img src="docs/screenshots/05-tokens.png" alt="Tokens"/><br/><sub><b>Tokens</b> — any ERC-20 / TRC-20 / SPL</sub></td>
+<td width="33%" align="center"><img src="docs/screenshots/06-send.png" alt="Send"/><br/><sub><b>Send</b> — build &amp; sign on device</sub></td>
+</tr>
+</table>
 
 ## Features
 

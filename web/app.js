@@ -119,7 +119,7 @@ var QR = (function () {
     for(i=0;i<n;i++)for(j=0;j<n;j++){
       if((i===0&&j===0)||(i===0&&j===n-1)||(i===n-1&&j===0))continue;
       var ax=ap[i],ay=ap[j];
-      for(dy=-2;dy<=2;dy++)for(dx=-2;dx<=2;dx++) set(ax+dx,ay+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1);
+      for(var dy=-2;dy<=2;dy++)for(var dx=-2;dx<=2;dx++) set(ax+dx,ay+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1);
     }
     // reserve format + version areas (drawn for real after masking)
     function reserveFormat(){
