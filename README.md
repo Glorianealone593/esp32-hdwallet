@@ -188,10 +188,29 @@ A minimal, recommended build: a 128×64 SSD1306 OLED on I2C and two buttons
 - Avoid the strapping and SPI-flash/PSRAM pins on each chip. Per-chip
   "pins to avoid" tables are in [`docs/HARDWARE.md`](docs/HARDWARE.md).
 
-## Quick start (prebuilt release)
+## Quick start (installer tool — easiest)
 
-You do **not** need a build environment to try DibaVault — you can flash a signed
-release binary from GitHub Releases.
+The simplest way to install DibaVault, identical on **Windows, Linux and macOS**,
+is the interactive installer. It downloads the right release from GitHub (or
+builds from source), finds your serial port, and flashes everything for you:
+
+```bash
+# Linux / macOS
+./tools/flasher/flash.sh
+#   or:  python3 tools/flasher/dibavault_flash.py
+
+# Windows: double-click tools\flasher\flash.bat  (or:  py dibavault_flash.py)
+```
+
+It asks what to do (download & flash / build & flash / erase), which chip, and
+which port, then handles the rest — installing `esptool` automatically if it's
+missing. You can even run `dibavault_flash.py` on its own without cloning the
+repo. See [`tools/flasher/README.md`](tools/flasher/README.md).
+
+## Quick start (manual, prebuilt release)
+
+Prefer to flash by hand? You do **not** need a build environment — grab a release
+binary from GitHub Releases.
 
 1. **Install `esptool`** (the Espressif flashing tool):
 
