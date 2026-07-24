@@ -90,6 +90,8 @@ typedef struct {
     dv_chain_t chain;
     uint64_t   evm_chain_id;
     char       to[DV_ADDR_STR_MAX];
+    char       from[DV_ADDR_STR_MAX];   // sender address (public; set by connectivity
+                                        // for nonce/UTXO lookup — vault re-derives the signer)
     uint8_t    value[32];       // big-endian amount, base units (wei/sat/sun/lamports)
     size_t     value_len;
     uint64_t   nonce;           // EVM / TRON

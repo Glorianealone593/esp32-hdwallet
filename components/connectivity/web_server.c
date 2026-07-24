@@ -302,6 +302,17 @@ static int build_unsigned(cJSON *j,dv_network_t *n,dv_unsigned_tx_t *tx){
     return tx->to[0]?0:-1;
 }
 
+// Derive the sender address for this network (index-0 account) and store it in
+// tx->from so rpc_prepare_tx can look up the nonce / UTXOs. No keys involved.
+static void set_from_address(const dv_network_t *n, dv_unsigned_tx_t *tx){
+    vault_req_t vq={.kind=VREQ_DERIVE_ACCOUNT,.origin=VORIGIN_REMOTE_HTTP,
+                    .chain=n->family,.evm_chain_id=n->evm_chain_id};
+    chains_default_path(n->family,0,0,&vq.path);
+    vault_resp_t s;
+    if(vault_ipc_request(&vq,&s,10000)==DV_OK)
+        strlcpy(tx->from,s.u.account.address,sizeof(tx->from));
+}
+
 // ---- tx build (returns a review) ----
 static esp_err_t h_tx_build(httpd_req_t *r){
     char *b=read_body(r); if(!b) return send_err(r,"bad_body",NULL);
@@ -311,6 +322,7 @@ static esp_err_t h_tx_build(httpd_req_t *r){
     dv_unsigned_tx_t tx;
     if(build_unsigned(j,&n,&tx)){cJSON_Delete(j);return send_err(r,"bad_tx",NULL);}
     cJSON_Delete(j);
+    set_from_address(&n,&tx);
     rpc_prepare_tx(&n,&tx);
     const dv_chain_ops_t *ops=chains_get(n.family);
     dv_tx_review_t rev; memset(&rev,0,sizeof(rev));
@@ -332,6 +344,7 @@ static esp_err_t do_sign(httpd_req_t *r,bool broadcast){
     chains_default_path(n.family,0,0,&q.path);
     if(build_unsigned(j,&n,&q.u.tx)){cJSON_Delete(j);return send_err(r,"bad_tx",NULL);}
     cJSON_Delete(j);
+    set_from_address(&n,&q.u.tx);
     rpc_prepare_tx(&n,&q.u.tx);
     vault_resp_t s; dv_err_t e=vault_ipc_request(&q,&s,120000); // wait for user confirm
     if(e!=DV_OK) return send_err(r,errname(e),"sign failed / rejected");

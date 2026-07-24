@@ -79,11 +79,27 @@ as on hardware.
 
 ## 3. Host unit tests (crypto correctness)
 
-The `chains` and `trezor-crypto` code is portable C. To validate address
-derivation and signing against known BIP39 test vectors on your PC, build a
-small host harness that links `components/chains` and the trezor-crypto sources
-and checks derived addresses against a reference wallet. (A ready-made host test
-target is on the roadmap — see the main [README](../README.md).)
+The `chains` and `trezor-crypto` code is portable C, so it runs on your PC with
+no ESP toolchain. A ready-made harness is included:
+
+```bash
+bash test/host/run_tests.sh
+```
+
+It derives addresses for the canonical BIP39 test mnemonic and checks them
+against known-good vectors for all four chains (Bitcoin, EVM, Tron, Solana):
+
+```
+  EVM  0x9858EfFD232B4033E47d90003D41EC34EcaEda94  (matches vector)
+  BTC  bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu  (matches vector)
+  TRX  TUEZSdKsoDHQMeZwihtdoBiN46zxhGWYdH          (matches vector)
+  SOL  HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk (matches vector)
+  ALL CHECKS PASSED
+```
+
+This same test runs in CI on every push (see `.github/workflows/ci.yml`), so a
+regression in key derivation fails the build. Add your own vectors in
+[`test/host/test_addresses.c`](../test/host/test_addresses.c).
 
 ---
 

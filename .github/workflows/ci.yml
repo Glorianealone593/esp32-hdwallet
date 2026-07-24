@@ -10,6 +10,21 @@ on:
   pull_request:
 
 jobs:
+  crypto-test:
+    name: Host crypto correctness
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Verify address derivation against known vectors
+        run: bash test/host/run_tests.sh
+
+      - name: Enforce the secure-core boundary
+        run: bash tools/check_boundary.sh
+
   build:
     name: Build (esp32s3)
     runs-on: ubuntu-latest
