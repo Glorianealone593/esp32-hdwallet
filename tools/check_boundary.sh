@@ -9,7 +9,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 FORBIDDEN='keystore\.h|signer\.h'
-UNTRUSTED_DIRS='components/connectivity components/console'
+UNTRUSTED_DIRS='components/connectivity components/dv_console'
 
 fail=0
 for d in $UNTRUSTED_DIRS; do
