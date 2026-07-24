@@ -441,7 +441,9 @@ static void reg(const char *uri,httpd_method_t m,esp_err_t(*h)(httpd_req_t*)){
 dv_err_t web_server_start(void){
     if(s_srv) return DV_OK;
     httpd_config_t c=HTTPD_DEFAULT_CONFIG();
-    c.uri_match_fn=httpd_uri_match_wildcard; c.max_uri_handlers=32; c.stack_size=8192;
+    // Handlers use sizeable stack buffers (RPC JSON, hex-encoded signed txs), and
+    // the RPC path nests several of them, so give the HTTP task ample stack.
+    c.uri_match_fn=httpd_uri_match_wildcard; c.max_uri_handlers=40; c.stack_size=16384;
     if(httpd_start(&s_srv,&c)!=ESP_OK) return DV_ERR;
     reg("/api/status",HTTP_GET,h_status);
     reg("/api/hal",HTTP_GET,h_hal_get);        reg("/api/hal",HTTP_POST,h_hal_post);
