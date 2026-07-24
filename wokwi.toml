@@ -1,0 +1,20 @@
+# DibaVault — Wokwi simulator config (dibachain)
+#
+# Test the firmware with no physical board using the Wokwi simulator.
+#
+# 1) Build for the target that matches diagram.json (ESP32-S3):
+#      idf.py set-target esp32s3 && idf.py build
+# 2) Run it:
+#      - VS Code: install the "Wokwi Simulator" extension, open this repo,
+#        press F1 -> "Wokwi: Start Simulator".
+#      - CLI: `wokwi-cli .`  (see https://docs.wokwi.com/wokwi-ci/cli-installation)
+#
+# Wokwi reads the built binaries from the ESP-IDF build/ directory below.
+[wokwi]
+version = 1
+firmware = "build/dibavault.bin"
+elf = "build/dibavault.elf"
+
+# Wokwi provides a virtual "Wokwi-GUEST" WiFi network with real internet access,
+# so the STA mode (join-router) path and RPC balance calls can be exercised in
+# the simulator. Configure STA to SSID "Wokwi-GUEST" (open) from the console.

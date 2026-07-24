@@ -352,6 +352,7 @@ external app/mobile developer can integrate against the device.
 | [`docs/BUILD.md`](docs/BUILD.md) | Build/flash for all targets, production fuses, signing keys, releases |
 | [`docs/HARDWARE.md`](docs/HARDWARE.md) | Supported boards, runtime HAL config, per-chip wiring & pins to avoid |
 | [`docs/API.md`](docs/API.md) | Full REST API reference for the on-device HTTP server (for app/mobile integration) |
+| [`docs/SIMULATION.md`](docs/SIMULATION.md) | Test with **no hardware** — Wokwi (OLED + WiFi), QEMU, host tests |
 
 ## Roadmap
 
